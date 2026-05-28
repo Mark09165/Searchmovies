@@ -7,6 +7,14 @@ import { create } from 'zustand';
 const USERS_KEY = 'cinesearch_users';
 const SESSION_KEY = 'cinesearch_session';
 
+// Demo account — credentials loaded from environment variables (never hardcoded)
+const DEMO_USER = {
+  id: 'demo-001',
+  username: 'MarcoA',
+  email: import.meta.env.VITE_DEMO_EMAIL || '',
+  password: import.meta.env.VITE_DEMO_PASSWORD || '',
+};
+
 const getUsers = () => JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
 const saveUsers = (users) => localStorage.setItem(USERS_KEY, JSON.stringify(users));
 const getSession = () => JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
@@ -46,6 +54,15 @@ const useAuthStore = create((set) => ({
   },
 
   login: (email, password) => {
+    // Check demo account first — works on any device without registration
+    if (email === DEMO_USER.email && password === DEMO_USER.password) {
+      const session = { id: DEMO_USER.id, username: DEMO_USER.username, email: DEMO_USER.email };
+      saveSession(session);
+      set({ user: session, error: null });
+      return true;
+    }
+
+    // Check locally registered users
     const users = getUsers();
     const found = users.find((u) => u.email === email && u.password === password);
 
